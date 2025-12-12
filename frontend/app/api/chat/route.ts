@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     language?: string;
   } = body;
 
-  const result = streamText({
+  const result = await streamText({
     model: google("gemini-2.5-flash"),
     system: `You are MarketSenseAI, a professional financial analyst assistant.
     
@@ -61,5 +61,5 @@ export async function POST(req: Request) {
     maxSteps: 2, // Allow it to call tool then answer
   });
 
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }
