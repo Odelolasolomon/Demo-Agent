@@ -72,7 +72,9 @@ const LANGUAGES = [
   { code: "fr-FR", name: "French" },
 ] as const;
 
-export default function ChatPage() {
+import { Suspense } from "react";
+
+function ChatContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const conversationIdParam = searchParams.get("id");
@@ -418,5 +420,13 @@ export default function ChatPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-background"><CustomLoader /></div>}>
+      <ChatContent />
+    </Suspense>
   );
 }
