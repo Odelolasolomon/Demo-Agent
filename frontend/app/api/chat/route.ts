@@ -2,7 +2,7 @@
 import { google } from "@ai-sdk/google";
 import { streamText, UIMessage } from "ai";
 
-export const runtime = "edge";
+
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -61,5 +61,5 @@ export async function POST(req: Request) {
     maxSteps: 2, // Allow it to call tool then answer
   });
 
-  return result.toAIStreamResponse();
+  return result.toDataStreamResponse();
 }
