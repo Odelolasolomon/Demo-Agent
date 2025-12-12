@@ -61,5 +61,5 @@ export async function POST(req: Request) {
     maxSteps: 2, // Allow it to call tool then answer
   });
 
-  return result.toDataStreamResponse();
+  return result.toAIStreamResponse();
 }
