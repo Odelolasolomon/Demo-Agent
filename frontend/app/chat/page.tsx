@@ -106,6 +106,7 @@ export default function ChatPage() {
   }, [conversationIdParam]);
 
   const { messages, sendMessage, status, regenerate, setMessages } = useChat({
+    // @ts-ignore
     api: "/api/chat",
     body: {
       userId,
