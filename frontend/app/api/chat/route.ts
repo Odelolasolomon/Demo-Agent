@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { google } from "@ai-sdk/google";
-import { streamText, UIMessage } from "ai";
+import { streamText, UIMessage, convertToCoreMessages } from "ai";
 
 
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     When asked to analyze a market, ALWAYS use the 'getMarketAnalysis' tool once to fetch real data.
     Don't just chat; use the tool.
     `,
-    messages,
+    messages: convertToCoreMessages(messages),
     tools: {
       getMarketAnalysis: {
         description: "Get comprehensive market analysis for a crypto asset",
