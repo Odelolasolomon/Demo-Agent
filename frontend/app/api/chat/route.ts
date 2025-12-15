@@ -28,8 +28,8 @@ export async function POST(req: Request) {
     IMPORTANT: The user speaks language code '${language}'. 
     You MUST provide your entire response in this language.
     
-    When asked to analyze a market, ALWAYS use the 'getMarketAnalysis' tool once to fetch real data.
-    Don't just chat; use the tool.
+    When asked to analyze a market, FIRST say 'Starting analysis for [Asset]...' to user, and THEN use the 'getMarketAnalysis' tool.
+    Do NOT call the tool silently. Speak first.
     `,
     messages: convertToCoreMessages(messages),
     tools: {
