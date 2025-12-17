@@ -613,6 +613,47 @@ Provide synthesis in JSON format:
         # Calculate risk score
         risk_score = 1 - overall_confidence
         
+        # Niche Logic: Calculate Hype Score (0-100)
+        # Based on Sentiment Confidence and Direction
+        sent_dir = synthesis.get("sections", {}).get("sentiment", {}).get("sentiment_label", "neutral")
+        sent_conf = self._safe_get(sentiment_result, "confidence", 0.5)
+        
+        base_hype = 50.0
+        if sent_dir == "bullish":
+            hype_adder = sent_conf * 40 # Max 90
+            base_hype += hype_adder
+        elif sent_dir == "bearish":
+            hype_subtractor = sent_conf * 40 # Min 10
+            base_hype -= hype_subtractor
+            
+        hype_score = round(base_hype, 1)
+        
+        # Niche Logic: Generate Chart Points (Simulated 7-day Hype vs Price)
+        # In a real app, this would come from a historical DB.
+        import random
+        from datetime import timedelta
+        dates = [(datetime.now() - timedelta(days=i)).strftime("%a") for i in range(6, -1, -1)]
+        chart_points = []
+        
+        # Mock price trend based on outlook
+        start_price = 100
+        trend = 1.05 if synthesis.get("outlook") == "bullish" else 0.95
+        
+        for i, d in enumerate(dates):
+            # Price moves
+            price_noise = random.uniform(-2, 2)
+            sim_price = start_price * (trend ** (i/6)) + price_noise
+            
+            # Hype moves (correlated or divergent)
+            hype_noise = random.uniform(-10, 10)
+            sim_hype = hype_score + hype_noise - ((6-i) * 2) # Ramp up to current hype
+            
+            chart_points.append({
+                "day": d,
+                "price": round(sim_price, 2),
+                "hype": round(max(0, min(100, sim_hype)), 1)
+            })
+
         return Analysis(
             query=query,
             asset_symbol=asset_symbol,
@@ -634,7 +675,11 @@ Provide synthesis in JSON format:
             risk_mitigations=synthesis.get("risk_mitigations", []),
             macro_analysis=macro_analysis,
             technical_analysis=technical_analysis,
-            sentiment_analysis=sentiment_analysis
+            sentiment_analysis=sentiment_analysis,
+            # Niche Fields
+            hype_score=hype_score,
+            fair_value_gap="Undervalued" if hype_score < 40 and synthesis.get("outlook") == "bullish" else "Overvalued" if hype_score > 80 else "Fair",
+            chart_points=chart_points
         )
     
     def _get_risk_level(self, risk_score: float) -> RiskLevel:

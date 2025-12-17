@@ -62,6 +62,11 @@ class Analysis:
     updated_at: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # Niche Metrics: Crypto Hype vs Reality
+    hype_score: float = 0.0
+    fair_value_gap: str = "Neutral"
+    chart_points: List[Dict[str, Any]] = field(default_factory=list)
+    
     def __post_init__(self):
         """Validate analysis"""
         if not 0 <= self.overall_confidence <= 1:
@@ -96,5 +101,8 @@ class Analysis:
             "technical_analysis": self.technical_analysis.to_dict() if self.technical_analysis else None,
             "sentiment_analysis": self.sentiment_analysis.to_dict() if self.sentiment_analysis else None,
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
+            "updated_at": self.updated_at.isoformat(),
+            "hype_score": self.hype_score,
+            "fair_value_gap": self.fair_value_gap,
+            "chart_points": self.chart_points
         }
