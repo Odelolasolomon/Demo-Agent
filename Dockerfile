@@ -1,37 +1,26 @@
-# Production Dockerfile for FastAPI application
-FROM python:3.11-slim
+# Use official Python lightweight image
+FROM python:3.10-slim
 
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (gcc needed for some python packages)
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
+# Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy the rest of the application code
 COPY . .
 
-# Create logs directory
-RUN mkdir -p logs
+# Expose the API port
+EXPOSE 8000
 
-# Cloud Run uses PORT environment variable
-ENV PORT=8080
-ENV ENVIRONMENT=production
-ENV DEBUG=False
-
-# Expose port
-EXPOSE 8080
-
-# Health check - calls root endpoint which responds immediately
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/ || exit 1
-
-# Run through startup wrapper that handles environment setup
-CMD exec python src/cloud_run_startup.py
+# Command to run the application using CMD (not ENTRYPOINT for flexibility)
+CMD ["uvicorn", "src.entry_scripts.fastapi_app:app", "--host", "0.0.0.0", "--port", "8000"]
