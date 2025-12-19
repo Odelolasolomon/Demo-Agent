@@ -1,78 +1,29 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: multiasset-postgres
-    environment:
-      POSTGRES_DB: multiasset
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: multiasset-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  api:
-    build: .
-    container_name: multiasset-api
-    command: python -m src.entry_scripts.start_api
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/multiasset
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./src:/app/src
-      - ./chroma_db:/app/chroma_db
-      - ./src/logs:/app/src/logs
-    env_file:
-      - .env
-    restart: unless-stopped
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+      - HOST=0.0.0.0
+    restart: always
 
-  worker:
-    build: .
-    container_name: multiasset-worker
-    command: python -m src.entry_scripts.start_worker
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/multiasset
-      - REDIS_URL=redis://redis:6379/0
+      # This points the frontend to the backend running on the same server
+      # Note: For client-side requests, usually needs Public IP, but for SSR it can use 'backend'
+      - NEXT_PUBLIC_API_URL=http://${PUBLIC_IP}:8000/api/v1
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./src:/app/src
-      - ./chroma_db:/app/chroma_db
-      - ./src/logs:/app/src/logs
-    env_file:
-      - .env
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-  redis_data:
+      - backend
+    restart: always
